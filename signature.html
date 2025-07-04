@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Signature Pad</title>
+    <style>
+      canvas {
+        border: 1px solid black;
+        touch-action: none;
+        display: block;
+        margin-bottom: 10px;
+      }
+      button {
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Sign below:</h3>
+    <canvas id="signature-pad"></canvas>
+    <br />
+    <button onclick="clearPad()">Clear</button>
+    <button onclick="submitSignature()">Submit</button>
+
+    <script>
+      const canvas = document.getElementById("signature-pad");
+      const ctx = canvas.getContext("2d");
+
+      // Set canvas width and height in both attributes and style
+      const canvasWidth = 500;
+      const canvasHeight = 200;
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      canvas.style.width = canvasWidth + "px";
+      canvas.style.height = canvasHeight + "px";
+
+      let drawing = false;
+
+      function getPosition(e) {
+        const rect = canvas.getBoundingClientRect();
+        let x, y;
+
+        if (e.touches) {
+          x = e.touches[0].clientX - rect.left;
+          y = e.touches[0].clientY - rect.top;
+        } else {
+          x = e.clientX - rect.left;
+          y = e.clientY - rect.top;
+        }
+
+        return { x, y };
+      }
+
+      function start(e) {
+        drawing = true;
+        const pos = getPosition(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        e.preventDefault();
+      }
+
+      function draw(e) {
+        if (!drawing) return;
+        const pos = getPosition(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        e.preventDefault();
+      }
+
+      function end() {
+        drawing = false;
+      }
+
+      function clearPad() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function submitSignature() {
+        const dataURL = canvas.toDataURL();
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "https://script.google.com/macros/s/AKfycbxF1kn6o5CKYvidw8Fuk9BpbsOigtsVgvGgWo4TY1UdC2DO_mNEOUoKGPGKKNCuS-6Z8g/exec"; // เปลี่ยนเป็น URL ที่คุณได้จาก Google Apps Script
+
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "signature";
+        input.value = dataURL;
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+      }
+
+      // Add event listeners
+      canvas.addEventListener("mousedown", start);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", end);
+      canvas.addEventListener("mouseout", end);
+
+      canvas.addEventListener("touchstart", start);
+      canvas.addEventListener("touchmove", draw);
+      canvas.addEventListener("touchend", end);
+    </script>
+  </body>
+</html>
